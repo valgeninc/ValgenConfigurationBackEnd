@@ -48,3 +48,9 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Visual Studio 2022 cache/options directory
+.vs/
+
+# Ignore any files in /bin and /obj Folders
+**/bin/*
+**/obj/*
