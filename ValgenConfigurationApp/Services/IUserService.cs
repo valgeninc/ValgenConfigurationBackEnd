@@ -3,11 +3,11 @@
 namespace ValgenConfigurationApp.Services
 {
     /// <summary>
-    /// ILoginAuthentication Interface.
+    /// IUserService Interface.
     /// </summary>
     
     public interface IUserService
     {
-        public Task<TokenModel> UserLogin(UserModel user);
+        public Task<TokenModel> UserLogin(string userName, string userPassword);
     }
 }

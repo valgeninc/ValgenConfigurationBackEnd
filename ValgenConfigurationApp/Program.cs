@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Adding database connection.
 builder.Services.AddDbContext<DatabaseContext>
-    (options => options.UseSqlServer(builder.Configuration.GetConnectionString("myDb")));
+    (options => options.UseSqlServer(builder.Configuration.GetConnectionString("ValgenDB")));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

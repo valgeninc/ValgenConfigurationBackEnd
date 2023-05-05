@@ -6,7 +6,8 @@ using ValgenConfigurationApp.Services.Models;
 namespace ValgenConfigurationApp.Controllers
 {
     /// <summary>
-    /// LoginController.
+    /// In LoginController we are logging in api by checking 
+    /// user credentials and validating jwt Token.
     /// </summary>
 
     [Route("api/[controller]")]
@@ -19,29 +20,31 @@ namespace ValgenConfigurationApp.Controllers
             _userService = userService;
         }
 
-        // UserLogin Method checking if user is present in database and genrating Jwt token.
+        /// <summary>
+        /// Authenticate user and return JWT token as response
+        /// </summary>
+        /// <param name="loginRequest">Login detail of user</param>
+        /// <returns>Login response</returns>
+        /// <exception cref="Exception">throws when API failed</exception>
+        
         [HttpPost]
-        public async Task<ActionResult<LoginResponseModel>> Login(LoginRequestModel users)
+        public async Task<ActionResult<LoginResponseModel>> Login(LoginRequestModel loginRequest)
         {
-            UserModel user = ConvertIntoServiceModel(users);
-            var loginData = await _userService.UserLogin(user);
-            LoginResponseModel rsModel = ConvertIntoResponseModel(loginData);
-            if(loginData == null)
+            if (loginRequest == null || loginRequest.userName == null || loginRequest.userPassword == null)
             {
                 return BadRequest();
             }
-            return Ok(rsModel);
-        }
 
-        // Method for mapping LoginRequestModel into UserModel.
-        private UserModel ConvertIntoServiceModel(LoginRequestModel model)
-        {
-            return new UserModel
+            try
             {
-                Id = model.Id,
-                userName = model.userName,
-                userPassword = model.userPassword,
-            };
+                var loginData = await _userService.UserLogin(loginRequest.userName, loginRequest.userPassword);
+                LoginResponseModel loginResponse = ConvertIntoResponseModel(loginData);
+                return Ok(loginResponse);
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(ex.Message);
+            }
         }
 
         // Method for mapping TokenModel into LoginResponseModel.
