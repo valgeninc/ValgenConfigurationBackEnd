@@ -29,5 +29,8 @@
 
         // Subscriber's ConfigJSON.
         public string? ConfigJSON { get; set; }
+
+        // This checks wheather a subscriber is active or not.
+        public bool? IsActive { get; set; }
     }
 }

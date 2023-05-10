@@ -110,7 +110,8 @@ namespace ValgenConfigurationApp.Controllers
                 SubscriberToken = s.SubscriberToken,
                 StartDate = s.StartDate,
                 EndDate = s.EndDate,
-                ConfigJSON = s.ConfigJSON
+                ConfigJSON = s.ConfigJSON,
+                IsActive = s.isActive
             }).ToList();
 
             return subscriber;
@@ -126,7 +127,8 @@ namespace ValgenConfigurationApp.Controllers
                 Phone = model.SubscriberPhone,
                 ConfigJSON = model.ConfigJSON,
                 StartDate = model.StartDate,
-                EndDate = model.EndDate
+                EndDate = model.EndDate,
+                isActive = model.isActive
             };
         }
     }

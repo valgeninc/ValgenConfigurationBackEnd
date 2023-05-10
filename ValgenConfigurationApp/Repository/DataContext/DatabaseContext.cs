@@ -35,6 +35,7 @@ namespace ValgenConfigurationApp.Repository.Models
                 entity.Property(e => e.StartDate).IsRequired(false);
                 entity.Property(e => e.EndDate).IsRequired(false);
                 entity.Property(e => e.ConfigJSON);
+                entity.Property(e => e.isActive);
             });
             base.OnModelCreating(modelBuilder);
         }

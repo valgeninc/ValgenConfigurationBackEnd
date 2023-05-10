@@ -107,7 +107,8 @@ namespace ValgenConfigurationApp.Services
                 SubscriberToken = new JwtSecurityTokenHandler().WriteToken(token),
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
-                ConfigJSON = model.ConfigJSON
+                ConfigJSON = model.ConfigJSON,
+                isActive = model.isActive
             };
         }
     }

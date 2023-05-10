@@ -90,7 +90,8 @@ namespace ValgenConfigurationApp.Repository
                            SubscriberToken = s.Token,
                            StartDate = s.StartDate,
                            EndDate = s.EndDate,
-                           ConfigJSON = s.ConfigJSON
+                           ConfigJSON = s.ConfigJSON,
+                           isActive = s.isActive
                        }).ToList();
 
             return subs;
@@ -106,7 +107,8 @@ namespace ValgenConfigurationApp.Repository
                 Token = model.SubscriberToken,
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
-                ConfigJSON = model.ConfigJSON
+                ConfigJSON = model.ConfigJSON,
+                isActive = model.isActive
             };
         }
     }

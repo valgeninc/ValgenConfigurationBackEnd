@@ -23,5 +23,8 @@
 
         // Subscriber's End Date.
         public DateTime? EndDate { get; set; }
+
+        // This checks if subscriber is active or not.
+        public bool? isActive { get; set; }
     }
 }
