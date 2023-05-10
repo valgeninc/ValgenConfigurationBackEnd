@@ -14,6 +14,8 @@ namespace ValgenConfigurationApp.Repository.Models
 
         public virtual DbSet<LoginDetails> LoginDetails { get; set; }
 
+        public virtual DbSet<Subscribers> Subscribers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LoginDetails>(entity =>
@@ -21,6 +23,18 @@ namespace ValgenConfigurationApp.Repository.Models
                 entity.Property(e => e.Id).IsRequired();
                 entity.Property(e => e.userName).IsRequired();
                 entity.Property(e => e.userPassword).IsRequired();
+            });
+
+            modelBuilder.Entity<Subscribers>(entity =>
+            {
+                entity.Property(e => e.Id).IsRequired();
+                entity.Property(e => e.UserName).IsRequired();
+                entity.Property(e => e.Email);
+                entity.Property(e => e.Phone);
+                entity.Property(e => e.Token);
+                entity.Property(e => e.StartDate).IsRequired(false);
+                entity.Property(e => e.EndDate).IsRequired(false);
+                entity.Property(e => e.ConfigJSON);
             });
             base.OnModelCreating(modelBuilder);
         }
