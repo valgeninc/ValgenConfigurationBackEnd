@@ -33,11 +33,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Adding LoginAuthentication service.
+// Adding User service.
 builder.Services.AddTransient<IUserService, UserService>();
+
+// Adding Subscriber service.
+builder.Services.AddTransient<ISubscriberService, SubscriberService>();
 
 // Adding User repository.
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+
+// Adding Subscriber service.
+builder.Services.AddTransient<ISubscriberRepository,  SubscriberRepository>();
+
 
 builder.Services.AddSwaggerGen();
 
