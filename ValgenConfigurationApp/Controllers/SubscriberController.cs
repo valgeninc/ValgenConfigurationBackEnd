@@ -28,7 +28,7 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpGet]
-        public async Task<List<SubscriberResponseModel>> GetSubscriberData()
+        public async Task<List<SubscriberResponseModel>> GetSubscribers()
         {
             List<SubscriberModel> subscriberData = await _subscriberService.GetSubscribers();
             return ToSubscriberResponseModel(subscriberData);
@@ -54,7 +54,7 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<SubscriberResponseModel>> UpdateSubscriberData(CreateSubscriberRequestModel requestModel, Guid id)
+        public async Task<ActionResult<SubscriberResponseModel>> UpdateSubscriber(CreateSubscriberRequestModel requestModel, Guid id)
         {
             try
             {

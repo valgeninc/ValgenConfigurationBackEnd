@@ -33,7 +33,7 @@ namespace ValgenConfigurationApp.Services
         public async Task<SubscriberModel> NewSubscriber(SubscriberRequestModel model)
         {
             SubscriberModel subscriber = GenerateSubscriberToken(model);
-            return await _subscriberRepository.CreateNewSubscriber(subscriber);
+            return await _subscriberRepository.CreateSubscriber(subscriber);
         }
 
         // Method for updating subscriber.
@@ -52,7 +52,7 @@ namespace ValgenConfigurationApp.Services
         // Method for generating subscriber token.
         private SubscriberModel GenerateSubscriberToken(SubscriberRequestModel model)
         {
-            int time = 10;
+            const int TOKEN_EXPIRE_TIME = 10;
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -67,7 +67,7 @@ namespace ValgenConfigurationApp.Services
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(time),
+                    expires: DateTime.UtcNow.AddMinutes(TOKEN_EXPIRE_TIME),
                     signingCredentials: credentials);
 
             return new SubscriberModel()

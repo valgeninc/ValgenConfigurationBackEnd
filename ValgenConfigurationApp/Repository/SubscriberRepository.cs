@@ -36,7 +36,7 @@ namespace ValgenConfigurationApp.Repository
         }
 
         // Method for creating new Subscriber.
-        public async Task<SubscriberModel> CreateNewSubscriber(SubscriberModel model)
+        public async Task<SubscriberModel> CreateSubscriber(SubscriberModel model)
         {
             _databaseContext.Subscribers.Add(ToSubscribers(model));
             await _databaseContext.SaveChangesAsync();
