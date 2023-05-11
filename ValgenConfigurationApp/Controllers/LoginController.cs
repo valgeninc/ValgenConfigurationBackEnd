@@ -10,7 +10,7 @@ namespace ValgenConfigurationApp.Controllers
     /// user credentials and validating jwt Token.
     /// </summary>
 
-    [Route("api/[action]")]
+    [Route("api/login")]
     [ApiController]
     public class LoginController : ControllerBase
     {

@@ -4,6 +4,10 @@ using ValgenConfigurationApp.Services.Models;
 
 namespace ValgenConfigurationApp.Repository
 {
+    /// <summary>
+    /// SubscriberRepository class.
+    /// </summary>
+    
     public class SubscriberRepository : ISubscriberRepository
     {
         private readonly DatabaseContext _databaseContext;
@@ -32,28 +36,31 @@ namespace ValgenConfigurationApp.Repository
         }
 
         // Method for creating new Subscriber.
-        public async Task CreateNewSubscriber(SubscriberModel model)
+        public async Task<SubscriberModel> CreateNewSubscriber(SubscriberModel model)
         {
             _databaseContext.Subscribers.Add(ToSubscribers(model));
             await _databaseContext.SaveChangesAsync();
+            Subscribers subscriber = await _databaseContext.Subscribers.FirstAsync(u => u.Token == model.SubscriberToken);
+            return ConvertIntoSubscriberModel(subscriber);
         }
 
         // Method for updating subscriber details.
-        public async Task UpdateSubscriber(SubscriberRequestModel model, Guid ID)
+        public async Task<SubscriberModel> UpdateSubscriber(SubscriberRequestModel model, Guid id)
         {
-            Subscribers subscriber = await _databaseContext.Subscribers.FirstAsync(u => u.Id == ID);
-
-            if (subscriber != null)
+            Subscribers subscriber = await _databaseContext.Subscribers.FirstAsync(u => u.Id == id);
+            if(subscriber == null)
             {
-                subscriber.UserName = model.UserName;
-                subscriber.Email = model.Email;
-                subscriber.Phone = model.Phone;
-                subscriber.StartDate = model.StartDate;
-                subscriber.EndDate = model.EndDate;
-                subscriber.ConfigJSON = model.ConfigJSON;
+                throw new ArgumentException("Subscriber not found"); ;
             }
 
-            _databaseContext.SaveChanges();
+            subscriber.UserName = model.UserName;
+            subscriber.Email = model.Email;
+            subscriber.Phone = model.Phone;
+            subscriber.StartDate = model.StartDate;
+            subscriber.EndDate = model.EndDate;
+            subscriber.ConfigJSON = model.ConfigJSON;
+
+            return ConvertIntoSubscriberModel(subscriber);
         }
 
         // Method for mapping List<Subscribers> into List<SubscriberModel>.
@@ -83,6 +90,22 @@ namespace ValgenConfigurationApp.Repository
                 Email = model.Email,
                 Phone = model.Phone,
                 Token = model.SubscriberToken,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                ConfigJSON = model.ConfigJSON,
+                isActive = model.isActive
+            };
+        }
+
+        private SubscriberModel ConvertIntoSubscriberModel(Subscribers model)
+        {
+            return new SubscriberModel
+            {
+                Id = model.Id,
+                UserName = model.UserName,
+                Email = model.Email,
+                Phone = model.Phone,
+                SubscriberToken = model.Token,
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
                 ConfigJSON = model.ConfigJSON,

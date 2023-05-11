@@ -37,6 +37,12 @@ namespace ValgenConfigurationApp.Repository.Models
                 entity.Property(e => e.ConfigJSON);
                 entity.Property(e => e.isActive);
             });
+
+            modelBuilder.Entity<Subscribers>(entity =>
+            {
+                entity.ToTable("Subscribers", tb => tb.HasTrigger("UpdateModifiedDate"));
+            });
+
             base.OnModelCreating(modelBuilder);
         }
 

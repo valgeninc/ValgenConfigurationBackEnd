@@ -40,7 +40,8 @@ namespace ValgenConfigurationApp.Services
         // Method for generating Token.
         private string GenerateToken(int id, string userName)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
+            int time = 10;
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:loginKey"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
@@ -53,7 +54,7 @@ namespace ValgenConfigurationApp.Services
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(10),
+                    expires: DateTime.UtcNow.AddMinutes(time),
                     signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

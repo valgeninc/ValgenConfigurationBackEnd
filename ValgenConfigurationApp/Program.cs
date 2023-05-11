@@ -26,7 +26,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:loginKey"]))
         };
     });
 
@@ -42,7 +42,7 @@ builder.Services.AddTransient<ISubscriberService, SubscriberService>();
 // Adding User repository.
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 
-// Adding Subscriber service.
+// Adding Subscriber Repository.
 builder.Services.AddTransient<ISubscriberRepository,  SubscriberRepository>();
 
 

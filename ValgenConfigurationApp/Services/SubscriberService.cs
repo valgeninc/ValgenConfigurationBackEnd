@@ -7,6 +7,10 @@ using ValgenConfigurationApp.Services.Models;
 
 namespace ValgenConfigurationApp.Services
 {
+    /// <summary>
+    /// SubscriberService class.
+    /// </summary>
+
     public class SubscriberService : ISubscriberService
     {
         private readonly IConfiguration _configuration;
@@ -26,21 +30,29 @@ namespace ValgenConfigurationApp.Services
         }
 
         // Method for creating subscriber.
-        public async Task NewSubscriber(SubscriberRequestModel model)
+        public async Task<SubscriberModel> NewSubscriber(SubscriberRequestModel model)
         {
             SubscriberModel subscriber = GenerateSubscriberToken(model);
-            await _subscriberRepository.CreateNewSubscriber(subscriber);
+            return await _subscriberRepository.CreateNewSubscriber(subscriber);
         }
 
         // Method for updating subscriber.
-        public async Task UpdatingSubscriberData(SubscriberRequestModel model, Guid ID)
+        public async Task<SubscriberModel> UpdatingSubscriberData(SubscriberRequestModel model, Guid id)
         {
-            await _subscriberRepository.UpdateSubscriber(model, ID);
+            try
+            {
+                return await _subscriberRepository.UpdateSubscriber(model, id);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         // Method for generating subscriber token.
         private SubscriberModel GenerateSubscriberToken(SubscriberRequestModel model)
         {
+            int time = 10;
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -55,7 +67,7 @@ namespace ValgenConfigurationApp.Services
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(10),
+                    expires: DateTime.UtcNow.AddMinutes(time),
                     signingCredentials: credentials);
 
             return new SubscriberModel()

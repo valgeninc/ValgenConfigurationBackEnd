@@ -6,8 +6,12 @@ using ValgenConfigurationApp.Services.Models;
 
 namespace ValgenConfigurationApp.Controllers
 {
+    /// <summary>
+    /// SubscriberController class.
+    /// </summary>
+
     [Authorize]
-    [Route("api/[action]")]
+    [Route("api/subscribers")]
     [ApiController]
     public class SubscriberController : ControllerBase
     {
@@ -37,10 +41,10 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpPost]
-        public async Task CreateSubscriber(CreateSubscriberRequestModel requestModel)
+        public async Task<SubscriberResponseModel> CreateSubscriber(CreateSubscriberRequestModel requestModel)
         {
-            await _subscriberService.NewSubscriber(ToSubscriberRequestModel(requestModel));
-
+            var subscriber = await _subscriberService.NewSubscriber(ToSubscriberRequestModel(requestModel));
+            return ConvertIntoSubscribeResponseModel(subscriber);
         }
 
         /// <summary>
@@ -49,10 +53,18 @@ namespace ValgenConfigurationApp.Controllers
         /// <param name="requestModel">Details which subscriber want to change</param>
         /// <exception cref="Exception">throws when API failed</exception>
 
-        [HttpPut("{ID}")]
-        public async Task UpdateSubscriberData(CreateSubscriberRequestModel requestModel, Guid ID)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<SubscriberResponseModel>> UpdateSubscriberData(CreateSubscriberRequestModel requestModel, Guid id)
         {
-            await _subscriberService.UpdatingSubscriberData(ToSubscriberRequestModel(requestModel), ID);
+            try
+            {
+                var subscriber = await _subscriberService.UpdatingSubscriberData(ToSubscriberRequestModel(requestModel), id);
+                return Ok(ConvertIntoSubscribeResponseModel(subscriber));
+            }
+            catch(Exception)
+            {
+                return NotFound();
+            }
         }
 
         // Method for mapping List<SubscriberModel> into List<SubscriberResponseModel>.
@@ -86,6 +98,22 @@ namespace ValgenConfigurationApp.Controllers
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
                 isActive = model.isActive
+            };
+        }
+
+        private SubscriberResponseModel ConvertIntoSubscribeResponseModel(SubscriberModel model)
+        {
+            return new SubscriberResponseModel()
+            {
+                Id = model.Id,
+                UserName = model.UserName,
+                Email = model.Email,
+                Phone = model.Phone,
+                SubscriberToken = model.SubscriberToken,
+                ConfigJSON = model.ConfigJSON,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                IsActive = model.isActive
             };
         }
     }
