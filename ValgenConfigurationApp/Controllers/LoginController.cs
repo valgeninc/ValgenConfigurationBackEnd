@@ -10,7 +10,7 @@ namespace ValgenConfigurationApp.Controllers
     /// user credentials and validating jwt Token.
     /// </summary>
 
-    [Route("api/[controller]")]
+    [Route("api/login")]
     [ApiController]
     public class LoginController : ControllerBase
     {
@@ -26,7 +26,7 @@ namespace ValgenConfigurationApp.Controllers
         /// <param name="loginRequest">Login detail of user</param>
         /// <returns>Login response</returns>
         /// <exception cref="Exception">throws when API failed</exception>
-        
+
         [HttpPost]
         public async Task<ActionResult<LoginResponseModel>> Login(LoginRequestModel loginRequest)
         {

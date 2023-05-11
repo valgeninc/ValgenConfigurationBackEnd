@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ValgenConfigurationApp.Repository;
 using ValgenConfigurationApp.Repository.Models;
 using ValgenConfigurationApp.Services;
@@ -11,14 +14,37 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<DatabaseContext>
     (options => options.UseSqlServer(builder.Configuration.GetConnectionString("ValgenDB")));
 
+// Adding JwtBearer Authorisation.
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidIssuer = builder.Configuration["JwtAdmin:Issuer"],
+            ValidAudience = builder.Configuration["JwtAdmin:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtAdmin:Key"]))
+        };
+    });
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Adding LoginAuthentication service.
+// Adding User service.
 builder.Services.AddTransient<IUserService, UserService>();
+
+// Adding Subscriber service.
+builder.Services.AddTransient<ISubscriberService, SubscriberService>();
 
 // Adding User repository.
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+
+// Adding Subscriber Repository.
+builder.Services.AddTransient<ISubscriberRepository,  SubscriberRepository>();
+
 
 builder.Services.AddSwaggerGen();
 
@@ -32,6 +58,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
