@@ -39,12 +39,23 @@ builder.Services.AddTransient<IUserService, UserService>();
 // Adding Subscriber service.
 builder.Services.AddTransient<ISubscriberService, SubscriberService>();
 
+// Adding Contact service.
+builder.Services.AddTransient<IContactService, ContactService>();
+
+// Adding Company Service.
+builder.Services.AddTransient<ICompanyService, CompanyService>();
+
 // Adding User repository.
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 // Adding Subscriber Repository.
 builder.Services.AddTransient<ISubscriberRepository,  SubscriberRepository>();
 
+// Adding Contact repository.
+builder.Services.AddTransient<IContactRepository, ContactRepository>();
+
+// Adding Company repository.
+builder.Services.AddTransient<ICompanyRepository, CompanyRepository>();
 
 builder.Services.AddSwaggerGen();
 
