@@ -38,7 +38,7 @@ namespace ValgenConfigurationApp.Services
         }
 
         // Method for generating Token.
-        private string GenerateToken(int id, string userName)
+        private string GenerateToken(Guid id, string userName)
         {
             const int TOKEN_EXPIRE_TIME = 10;
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtAdmin:Key"] ?? ""));

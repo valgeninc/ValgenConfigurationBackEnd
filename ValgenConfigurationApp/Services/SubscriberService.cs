@@ -1,8 +1,13 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
+using ValgenConfigurationApp.Common;
+using ValgenConfigurationApp.Models;
 using ValgenConfigurationApp.Repository;
+using ValgenConfigurationApp.Repository.Models;
 using ValgenConfigurationApp.Services.Models;
 
 namespace ValgenConfigurationApp.Services
@@ -30,10 +35,36 @@ namespace ValgenConfigurationApp.Services
         }
 
         // Method for creating subscriber.
-        public async Task<SubscriberModel> NewSubscriber(SubscriberRequestModel model)
+        public async Task NewSubscriber(SubscriberRequestModel model)
         {
-            SubscriberModel subscriber = GenerateSubscriberToken(model);
-            return await _subscriberRepository.CreateSubscriber(subscriber);
+            await _subscriberRepository.CreateSubscriber(model);
+        }
+
+        // Method for creating subscription.
+        public async Task<ApiResponseModel> NewSubscription(SubscriptionRequestModel subscription)
+        {
+            try
+            {
+                Subscribers subscribers = await _subscriberRepository.CheckSubscriber(subscription.SubscriberId);
+                if (subscribers is not null)
+                {
+                    subscription.SubscriptionId = Guid.NewGuid();
+                    subscription = GenerateSubscriberToken(subscribers, subscription);
+                }
+                await _subscriberRepository.CreateSubscription(subscription);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = "Saved Successfully!!" };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        // Method for updating subscription.
+        public async Task UpdateSubscription(SubscriptionRequestModel subscription)
+        {
+            Subscriptions subs = await GetSubscription(subscription.SubscriptionId);
+            await _subscriberRepository.UpdateSubscription(subs, subscription);
         }
 
         // Method for updating subscriber.
@@ -49,38 +80,98 @@ namespace ValgenConfigurationApp.Services
             }
         }
 
-        // Method for generating subscriber token.
-        private SubscriberModel GenerateSubscriberToken(SubscriberRequestModel model)
+        public async Task<ColumnList> GetColumnList()
         {
-            const int TOKEN_EXPIRE_TIME = 10;
+            try
+            {
+                return await _subscriberRepository.GetColumnList(_configuration.GetConnectionString("ValgenDB"));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<List<SubscriptionModel>> GetSubscriptions(Guid subscriberId)
+        {
+            List<Subscriptions> subscriptions = await _subscriberRepository.GetAllSubscriptions(subscriberId);
+            List<SubscriptionModel> models = new List<SubscriptionModel>();
+
+            if (subscriptions.Count > 0)
+            {
+                foreach (var s in subscriptions)
+                {
+                    SubscriptionModel req = new SubscriptionModel();
+                    req.SubscriberToken = EncryptionDecryptionUtility.DecryptString(s.Token, _configuration["Encryption:Key"]);
+                    req.SubscriberId = subscriberId;
+                    req.SubscriptionId = s.SubscriptionId;
+                    req.StartDate = s.StartDate;
+                    req.EndDate = s.EndDate;
+                    req.MaxRequests = s.MaxRequests;
+                    req.TimeWindow = s.TimeWindow;
+                    req.isActive = s.isActive;
+                    req.SubscriptionServicesModel = new List<SubscriptionServicesModel>();
+                    foreach (var services in s.SubscriptionServices)
+                    {
+                        SubscriptionServicesModel serviceModel = new SubscriptionServicesModel();
+                        serviceModel.SubscriptionId = services.SubscriptionId;
+                        serviceModel.ServiceId = services.ServiceId;
+                        SubscriptionServicesDeserialized json = JsonConvert.DeserializeObject<SubscriptionServicesDeserialized>(services.ConfigJson);
+                        serviceModel.Columns = json.Columns;
+                        serviceModel.CompanyRecords = json.CompanyRecords;
+                        serviceModel.LocationRecords = json.LocationRecords;
+                        serviceModel.EndPointDesc = await _subscriberRepository.GetEndPointDesc(services.EndPointId);
+                        req.SubscriptionServicesModel.Add(serviceModel);
+                    }
+                    models.Add(req);
+                }
+            }
+            return models;
+        }
+
+        // Method for activating/deactivating subscription.
+        public async Task RenewSubscription(RenewSubscriptionModel model)
+        {
+            await _subscriberRepository.RenewSubscription(model);
+        }
+
+        // Method for refresh token subscription.
+        public async Task<string> RefreshToken(Guid subscriptionId)
+        {
+            var subs = await GetSubscription(subscriptionId);
+            SubscriptionRequestModel subsRequestModel = new SubscriptionRequestModel();
+            subsRequestModel.SubscriptionId = subs.SubscriptionId;
+            subsRequestModel = GenerateSubscriberToken(subs.Subscriber, subsRequestModel);
+            await _subscriberRepository.UpdateRefreshToken(subsRequestModel);
+
+            return EncryptionDecryptionUtility.DecryptString(subsRequestModel.SubscriberToken, _configuration["Encryption:Key"]); 
+        }
+
+        private async Task<Subscriptions> GetSubscription(Guid subscriptionId)
+        {
+            return await _subscriberRepository.CheckSubscription(subscriptionId);
+        }
+
+        // Method for generating subscriber token.
+        private SubscriptionRequestModel GenerateSubscriberToken(Subscribers model, SubscriptionRequestModel subscription)
+        {
+            subscription.RefreshTokenId = Guid.NewGuid();
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
             var claims = new[]
                     {
-                         new Claim(ClaimTypes.NameIdentifier, model.UserName),
-                         new Claim(ClaimTypes.NameIdentifier, model.Email ?? ""),
-                         new Claim(ClaimTypes.NameIdentifier, model.Phone ?? "")
+                         new Claim(ClaimTypes.NameIdentifier, model.Name),
+                         new Claim("Id",subscription.SubscriptionId.ToString()) ,
+                         new Claim("RefreshTokenId",subscription.RefreshTokenId.ToString())
                     };
 
             var token = new JwtSecurityToken(
                     _configuration["Jwt:Issuer"],
                     _configuration["Jwt:Audience"],
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(TOKEN_EXPIRE_TIME),
                     signingCredentials: credentials);
-
-            return new SubscriberModel()
-            {
-                UserName = model.UserName,
-                Email = model.Email,
-                Phone = model.Phone,
-                SubscriberToken = new JwtSecurityTokenHandler().WriteToken(token),
-                StartDate = model.StartDate,
-                EndDate = model.EndDate,
-                ConfigJSON = model.ConfigJSON,
-                isActive = model.isActive
-            };
+            subscription.SubscriberToken = EncryptionDecryptionUtility.EncryptString(new JwtSecurityTokenHandler().WriteToken(token), _configuration["Encryption:Key"]);
+            return subscription;
         }
     }
 }

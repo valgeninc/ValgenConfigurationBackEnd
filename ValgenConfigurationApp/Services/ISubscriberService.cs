@@ -1,4 +1,5 @@
-﻿using ValgenConfigurationApp.Services.Models;
+﻿using ValgenConfigurationApp.Models;
+using ValgenConfigurationApp.Services.Models;
 
 namespace ValgenConfigurationApp.Services
 {
@@ -9,7 +10,13 @@ namespace ValgenConfigurationApp.Services
         /// </summary>
         /// <returns></returns>
         public Task<List<SubscriberModel>> GetSubscribers();
-        public Task<SubscriberModel> NewSubscriber(SubscriberRequestModel subscriber);
+        public Task NewSubscriber(SubscriberRequestModel subscriber);
         public Task<SubscriberModel> UpdatingSubscriberData(SubscriberRequestModel subscriber, Guid id);
+        public Task<ColumnList> GetColumnList();
+        public Task<ApiResponseModel> NewSubscription(SubscriptionRequestModel model);
+        public Task<List<SubscriptionModel>> GetSubscriptions(Guid subscriberId);
+        public Task UpdateSubscription(SubscriptionRequestModel model);
+        public Task RenewSubscription(RenewSubscriptionModel model);
+        public Task<string> RefreshToken(Guid subscriptionId);
     }
 }

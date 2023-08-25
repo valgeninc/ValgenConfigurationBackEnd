@@ -1,4 +1,6 @@
-﻿namespace ValgenConfigurationApp.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ValgenConfigurationApp.Models
 {
     /// <summary>
     /// CreateSubscriberRequestModel class.
@@ -7,24 +9,27 @@
     public class CreateSubscriberRequestModel
     {
         // Subscriber's Username.
-        public string SubscriberUserName { get; set; } = string.Empty;
+        [Required,MaxLength(200)]
+        public string Name { get; set; } = string.Empty;
 
         // Subscriber's Email.
-        public string? SubscriberEmail { get; set;}
+        [MaxLength(50)]
+        public string? Email { get; set;}
 
         // Subscriber's Phone.
-        public string? SubscriberPhone { get; set;}
+        [MaxLength(20)]
+        public string? Phone { get; set;}
 
-        // Subscriber's ConfigJson.
-        public string? ConfigJSON { get; set;}
+        //// Subscriber's ConfigJson.
+        //public string? ConfigJSON { get; set;}
 
-        // Subscriber's Start Date.
-        public DateTime? StartDate { get; set; }
+        //// Subscriber's Start Date.
+        //public DateTime? StartDate { get; set; }
 
-        // Subscriber's End Date.
-        public DateTime? EndDate { get; set; }
+        //// Subscriber's End Date.
+        //public DateTime? EndDate { get; set; }
 
-        // This checks if subscriber is active or not.
-        public bool? isActive { get; set; }
+        //// This checks if subscriber is active or not.
+        //public bool? isActive { get; set; }
     }
 }
