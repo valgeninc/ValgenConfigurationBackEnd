@@ -21,5 +21,9 @@ namespace ValgenConfigurationApp.Repository
         public Task<string> GetEndPointDesc(Guid endPointId);
         public Task RenewSubscription(RenewSubscriptionModel model);
         public Task UpdateRefreshToken(SubscriptionRequestModel model);
+        public Task<string> GetSubscriberName(Guid subscriberId);
+        public Task<List<ServicesTracking>> GetServicesTracking(Guid subscriptionId);
+        public Task<List<ServicesTracking>> GetServicesTracking(Guid subscriptionId,Guid endPointId);
+        public Task<List<SubscriptionServices>> GetSubscriptionServices(Guid subscriptionId);
     }
 }

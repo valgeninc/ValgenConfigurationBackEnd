@@ -54,7 +54,7 @@ namespace ValgenConfigurationApp.Services
                     _configuration["JwtAdmin:Issuer"],
                     _configuration["JwtAdmin:Audience"],
                     claims,
-                    expires: DateTime.UtcNow.AddMinutes(TOKEN_EXPIRE_TIME),
+                    expires: DateTime.UtcNow.AddDays(1),
                     signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

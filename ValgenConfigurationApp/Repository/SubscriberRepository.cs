@@ -90,7 +90,7 @@ namespace ValgenConfigurationApp.Repository
                         MaxRequests = model.MaxRequests,
                         TimeWindow = model.TimeWindow,
                         isActive = model.IsActive,
-                        RefreshTokenId=model.RefreshTokenId
+                        RefreshTokenId = model.RefreshTokenId
                     });
                     List<SubscriptionServices> subscriptionServices = new List<SubscriptionServices>();
                     if (model.SubscriptionServicesMainModel.Count > 0)
@@ -107,7 +107,6 @@ namespace ValgenConfigurationApp.Repository
                         await _databaseContext.SubscriptionServices.AddRangeAsync(subscriptionServices);
                     }
                     await _databaseContext.SaveChangesAsync();
-                    //await _databaseContext.Subscriptions.Where(a => a.SubscriptionId != model.SubscriptionId).ExecuteUpdateAsync(a => a.SetProperty(x => x.isActive, x => false));
 
                     string s = JsonConvert.SerializeObject(model);
                     await ApiLogging.InsertLog(SerializeDeserialize.SerializeObject(model), messageType, model.SubscriptionId, _databaseContext);
@@ -144,7 +143,6 @@ namespace ValgenConfigurationApp.Repository
                     }
                     _databaseContext.SubscriptionServices.UpdateRange(subs);
                     await _databaseContext.SaveChangesAsync();
-                    //await _databaseContext.Subscriptions.Where(a => a.SubscriptionId != model.SubscriptionId).ExecuteUpdateAsync(a => a.SetProperty(x => x.isActive, x => false));
                     await ApiLogging.InsertLog(SerializeDeserialize.SerializeObject(model), Enums.MessageType.Subscriptions.ToString(), model.SubscriptionId, _databaseContext);
                     transaction.Commit();
                 }
@@ -185,7 +183,7 @@ namespace ValgenConfigurationApp.Repository
             col.IdentifiedColumnList = new List<string>();
             while (await dataReader.ReadAsync())
             {
-                if (dataReader["EndPointDesc"].ToString() == "AnonymizedDetail")
+                if (dataReader["EndPointDesc"].ToString().ToUpper() == "ANONYMIZEDDETAIL")
                     col.AnonymizedColumnList.Add(dataReader["Column_name"].ToString());
                 else
                     col.IdentifiedColumnList.Add(dataReader["Column_name"].ToString());
@@ -203,10 +201,6 @@ namespace ValgenConfigurationApp.Repository
             try
             {
                 await _databaseContext.Subscriptions.Where(a => a.SubscriptionId == model.SubscriptionId).ExecuteUpdateAsync(a => a.SetProperty(x => x.isActive, x => model.IsActive));
-                //if (model.IsActive)
-                //{
-                //    await _databaseContext.Subscriptions.Where(a => a.SubscriptionId == model.SubscriptionId).ExecuteUpdateAsync(a => a.SetProperty(x => x.isActive, x => model.IsActive));
-                //}
                 await ApiLogging.InsertLog(SerializeDeserialize.SerializeObject(model), Enums.MessageType.RenewSubscription.ToString(), model.SubscriptionId, _databaseContext);
             }
             catch (Exception)
@@ -234,13 +228,54 @@ namespace ValgenConfigurationApp.Repository
         {
             try
             {
-                return await _databaseContext.Subscriptions.Include(a => a.SubscriptionServices).Include(a=>a.Subscriber).FirstAsync(u => u.SubscriptionId == subscriptionId);
+                return await _databaseContext.Subscriptions.Include(a => a.SubscriptionServices).Include(a => a.Subscriber).FirstAsync(u => u.SubscriptionId == subscriptionId);
             }
             catch (Exception)
             {
                 throw;
             }
         }
+
+        // Method for getting Subscription Services.
+        public async Task<List<SubscriptionServices>> GetSubscriptionServices(Guid subscriptionId)
+        {
+            try
+            {
+                return await _databaseContext.SubscriptionServices.Where(u => u.SubscriptionId == subscriptionId).ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<ServicesTracking>> GetServicesTracking(Guid subscriptionId)
+        {
+            try
+            {
+                List<ServicesTracking> servicesTrack = await _databaseContext.ServicesTrackings.Where(u => u.SubscriptionId == subscriptionId).ToListAsync();
+                return servicesTrack;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<ServicesTracking>> GetServicesTracking(Guid subscriptionId, Guid endPointId)
+        {
+            try
+            {
+                List<ServicesTracking> servicesTrack = await _databaseContext.ServicesTrackings.Where(u => u.SubscriptionId == subscriptionId && u.EndPointId == endPointId).ToListAsync();
+                return servicesTrack;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
 
         // Method for getting EndPointId.
         public async Task<APIEndPoints> GetEndPoints(string? endPointDesc)
@@ -277,6 +312,20 @@ namespace ValgenConfigurationApp.Repository
                 await _databaseContext.Subscriptions.Where(a => a.SubscriptionId == model.SubscriptionId).ExecuteUpdateAsync(a => a
                 .SetProperty(x => x.RefreshTokenId, x => model.RefreshTokenId)
                 .SetProperty(x => x.Token, x => model.SubscriberToken));
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        // Method for Getting the name of Subscriber.
+        public async Task<string> GetSubscriberName(Guid subscriberId)
+        {
+            try
+            {
+                var subs = await _databaseContext.Subscribers.FirstAsync(a => a.Id == subscriberId);
+                return subs.Name;
             }
             catch (Exception)
             {

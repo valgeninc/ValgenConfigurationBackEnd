@@ -111,6 +111,7 @@ namespace ValgenConfigurationApp.Services
                     req.TimeWindow = s.TimeWindow;
                     req.isActive = s.isActive;
                     req.SubscriptionServicesModel = new List<SubscriptionServicesModel>();
+                    List<ServicesTracking> tracking = await _subscriberRepository.GetServicesTracking(s.SubscriptionId);
                     foreach (var services in s.SubscriptionServices)
                     {
                         SubscriptionServicesModel serviceModel = new SubscriptionServicesModel();
@@ -121,6 +122,22 @@ namespace ValgenConfigurationApp.Services
                         serviceModel.CompanyRecords = json.CompanyRecords;
                         serviceModel.LocationRecords = json.LocationRecords;
                         serviceModel.EndPointDesc = await _subscriberRepository.GetEndPointDesc(services.EndPointId);
+                        serviceModel.RemainingCompanyRecords = json.CompanyRecords;
+                        serviceModel.RemainingLocationRecords = json.LocationRecords;
+                        if (tracking.Count > 0)
+                        {
+                            foreach (var t in tracking)
+                            {
+                                if (t.EndPointId == services.EndPointId && t.RecordType.ToUpper() == "COMPANY")
+                                {
+                                    serviceModel.RemainingCompanyRecords = json.CompanyRecords - t.TotalRecordsFetched;
+                                }
+                                if (t.EndPointId == services.EndPointId && t.RecordType.ToUpper() == "LOCATION")
+                                {
+                                    serviceModel.RemainingLocationRecords = json.LocationRecords - t.TotalRecordsFetched;
+                                }
+                            }
+                        }
                         req.SubscriptionServicesModel.Add(serviceModel);
                     }
                     models.Add(req);
@@ -144,7 +161,63 @@ namespace ValgenConfigurationApp.Services
             subsRequestModel = GenerateSubscriberToken(subs.Subscriber, subsRequestModel);
             await _subscriberRepository.UpdateRefreshToken(subsRequestModel);
 
-            return EncryptionDecryptionUtility.DecryptString(subsRequestModel.SubscriberToken, _configuration["Encryption:Key"]); 
+            return EncryptionDecryptionUtility.DecryptString(subsRequestModel.SubscriberToken, _configuration["Encryption:Key"] ?? string.Empty);
+        }
+
+        // Method for getting Subscriber's Name
+        public async Task<string> GetSubscriberName(Guid subscriberId)
+        {
+            return await _subscriberRepository.GetSubscriberName(subscriberId);
+        }
+
+        public async Task<TrackingDetailList> GetServicesTracking(Guid subscriptionId)
+        {
+            var subs = await _subscriberRepository.GetSubscriptionServices(subscriptionId);
+            TrackingDetailList list = new TrackingDetailList();
+
+            if (subs.Count > 0)
+            {
+                foreach (var services in subs)
+                {
+                    SubscriptionServicesDeserialized? json = JsonConvert.DeserializeObject<SubscriptionServicesDeserialized>(services.ConfigJson);
+                    string desc = await _subscriberRepository.GetEndPointDesc(services.EndPointId);
+                    if (desc.ToUpper() == "ANONYMIZEDDETAIL")
+                    {
+                        list.AnonymizedCompanyRecords = json?.CompanyRecords ?? 0;
+                        list.AnonymizedLocationRecords = json?.LocationRecords ?? 0;
+                        List<ServicesTracking> tracking = await _subscriberRepository.GetServicesTracking(subscriptionId, services.EndPointId);
+                        foreach (var t in tracking)
+                        {
+                            if (t.RecordType.ToUpper() == "COMPANY")
+                            {
+                                list.AnonymizedCompanyRecords = json.CompanyRecords - t.TotalRecordsFetched;
+                            }
+                            else
+                            {
+                                list.AnonymizedLocationRecords = json.LocationRecords - t.TotalRecordsFetched;
+                            }
+                        }
+                    }
+                    else if (desc.ToUpper() == "IDENTIFIEDDETAIL")
+                    {
+                        list.IdentifiedCompanyRecords = json?.CompanyRecords ?? 0;
+                        list.IdentifiedLocationRecords = json?.LocationRecords ?? 0;
+                        List<ServicesTracking> tracking = await _subscriberRepository.GetServicesTracking(subscriptionId, services.EndPointId);
+                        foreach (var t in tracking)
+                        {
+                            if (t.RecordType.ToUpper() == "COMPANY")
+                            {
+                                list.IdentifiedCompanyRecords = json.CompanyRecords - t.TotalRecordsFetched;
+                            }
+                            else
+                            {
+                                list.IdentifiedLocationRecords = json.LocationRecords - t.TotalRecordsFetched;
+                            }
+                        }
+                    }
+                }
+            }
+            return list;
         }
 
         private async Task<Subscriptions> GetSubscription(Guid subscriptionId)

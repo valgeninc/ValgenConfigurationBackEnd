@@ -21,7 +21,10 @@ namespace ValgenConfigurationApp.Repository.Models
         public virtual DbSet<SubscriptionServices> SubscriptionServices { get; set; }
 
         public virtual DbSet<APIEndPoints> APIEndPoints { get; set; }
+        
         public virtual DbSet<APILogs> APILogs { get; set; }
+
+        public virtual DbSet<ServicesTracking> ServicesTrackings { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<LoginDetails>(entity =>
@@ -74,6 +77,18 @@ namespace ValgenConfigurationApp.Repository.Models
                 entity.Property(e => e.Id);
                 entity.Property(e => e.OwnerId);
                 entity.Property(e => e.MessageType);
+            });
+            modelBuilder.Entity<ServicesTracking>()
+                .HasKey(a => new { a.SubscriptionId, a.EndPointId, a.RecordType });
+            modelBuilder.Entity<ServicesTracking>(entity =>
+            {
+                entity.ToTable("ServicesTracking");
+                entity.Property(e => e.SubscriptionId);
+                entity.Property(e => e.EndPointId);
+                entity.Property(e => e.RecordType);
+                entity.Property(e => e.TotalRecordsFetched);
+                entity.Property(e => e.RecordsId);
+                entity.Property(e => e.UpdatedOn);
             });
             base.OnModelCreating(modelBuilder);
         }

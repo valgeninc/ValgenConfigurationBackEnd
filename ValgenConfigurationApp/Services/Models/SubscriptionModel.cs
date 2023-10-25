@@ -25,6 +25,8 @@ namespace ValgenConfigurationApp.Services.Models
         public int LocationRecords { get; set; }
         public string EndPointDesc { get; set; }
         public string[] Columns { get; set; }
+        public int RemainingCompanyRecords { get; set; }
+        public int RemainingLocationRecords { get; set; }
     }
     public class SubscriptionServicesDeserialized
     {

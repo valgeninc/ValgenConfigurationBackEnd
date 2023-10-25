@@ -6,9 +6,15 @@
         public List<string> IdentifiedColumnList { get; set; }
     }
 
-    public class Options {
-        public string Label { get; set; }
-        public string value { get; set; }
+    public class TrackingDetailList
+    {
+        public int AnonymizedCompanyRecords { get; set; } = 0;
+
+        public int AnonymizedLocationRecords { get; set; } = 0;
+
+        public int IdentifiedCompanyRecords { get; set; } = 0;
+
+        public int IdentifiedLocationRecords { get; set; } = 0;
     }
 
 }

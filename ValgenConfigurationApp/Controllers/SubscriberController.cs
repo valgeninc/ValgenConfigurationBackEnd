@@ -174,6 +174,24 @@ namespace ValgenConfigurationApp.Controllers
         }
 
         /// <summary>
+        /// Get Subscription.
+        /// </summary>
+        [HttpGet]
+        [Route("GetServicesTracking")]
+        public async Task<ApiResponseModel> GetServicesTracking(Guid SubscriptionId)
+        {
+            try
+            {
+                TrackingDetailList list = await _subscriberService.GetServicesTracking(SubscriptionId);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = list };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Refresh Token.
         /// </summary>
         [HttpPut]
@@ -184,6 +202,24 @@ namespace ValgenConfigurationApp.Controllers
             {
                 string token = await _subscriberService.RefreshToken(SubscriptionId);
                 return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = token };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get Subscriber Name.
+        /// </summary>
+        [HttpGet]
+        [Route("GetSubscriberName")]
+        public async Task<ApiResponseModel> GetSubscriberName(Guid SubscriberId)
+        {
+            try
+            {
+                string name = await _subscriberService.GetSubscriberName(SubscriberId);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = name };
             }
             catch (Exception)
             {

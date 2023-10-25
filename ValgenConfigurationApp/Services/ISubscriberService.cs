@@ -1,4 +1,5 @@
 ﻿using ValgenConfigurationApp.Models;
+using ValgenConfigurationApp.Repository.Models;
 using ValgenConfigurationApp.Services.Models;
 
 namespace ValgenConfigurationApp.Services
@@ -18,5 +19,7 @@ namespace ValgenConfigurationApp.Services
         public Task UpdateSubscription(SubscriptionRequestModel model);
         public Task RenewSubscription(RenewSubscriptionModel model);
         public Task<string> RefreshToken(Guid subscriptionId);
+        public Task<string> GetSubscriberName(Guid subscriberId);
+        public Task<TrackingDetailList> GetServicesTracking(Guid subscriptionId);
     }
 }
