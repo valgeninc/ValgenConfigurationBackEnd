@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
+using ValgenConfigurationApp.Middleware;
 using ValgenConfigurationApp.Repository;
 using ValgenConfigurationApp.Repository.Models;
 using ValgenConfigurationApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 // Adding database connection.
 builder.Services.AddDbContext<DatabaseContext>
@@ -43,26 +43,53 @@ builder.Services.AddTransient<ISubscriberService, SubscriberService>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 
 // Adding Subscriber Repository.
-builder.Services.AddTransient<ISubscriberRepository,  SubscriberRepository>();
+builder.Services.AddTransient<ISubscriberRepository, SubscriberRepository>();
 
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(setup =>
+{
+    var jwtSecurityScheme = new OpenApiSecurityScheme
+    {
+        BearerFormat = "JWT",
+        Name = "JWT Authentication",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = JwtBearerDefaults.AuthenticationScheme,
+        Description = "Put **_ONLY_** your JWT Bearer token on textbox below!",
+
+        Reference = new OpenApiReference
+        {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+    setup.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+    setup.AddSecurityRequirement(new OpenApiSecurityRequirement
+{
+    { jwtSecurityScheme, Array.Empty<string>() }
+});
+});
+builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+{
+    builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+}));
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseCors("corsapp");
 
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseRouting();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
-
+app.UseExceptionHandlerMiddleware();
 app.MapControllers();
 
 app.Run();

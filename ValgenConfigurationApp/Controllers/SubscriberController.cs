@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Net;
 using ValgenConfigurationApp.Models;
+using ValgenConfigurationApp.Repository.Models;
 using ValgenConfigurationApp.Services;
 using ValgenConfigurationApp.Services.Models;
 
@@ -28,10 +31,17 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpGet]
-        public async Task<List<SubscriberResponseModel>> GetSubscribers()
+        public async Task<ApiResponseModel> GetSubscribers()
         {
-            List<SubscriberModel> subscriberData = await _subscriberService.GetSubscribers();
-            return ToSubscriberResponseModel(subscriberData);
+            try
+            {
+                List<SubscriberModel> subscriberData = await _subscriberService.GetSubscribers();
+                return new ApiResponseModel(HttpStatusCode.OK, subscriberData);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         /// <summary>
@@ -41,10 +51,17 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpPost]
-        public async Task<SubscriberResponseModel> CreateSubscriber(CreateSubscriberRequestModel requestModel)
+        public async Task<ApiResponseModel> CreateSubscriber(CreateSubscriberRequestModel requestModel)
         {
-            var subscriber = await _subscriberService.NewSubscriber(ToSubscriberRequestModel(requestModel));
-            return ConvertIntoSubscribeResponseModel(subscriber);
+            try
+            {
+                await _subscriberService.NewSubscriber(ToSubscriberRequestModel(requestModel));
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = "Record Saved Successfully!!" };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         /// <summary>
@@ -54,16 +71,159 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<SubscriberResponseModel>> UpdateSubscriber(CreateSubscriberRequestModel requestModel, Guid id)
+        public async Task<ApiResponseModel> UpdateSubscriber(CreateSubscriberRequestModel requestModel, Guid id)
         {
             try
             {
                 var subscriber = await _subscriberService.UpdatingSubscriberData(ToSubscriberRequestModel(requestModel), id);
-                return Ok(ConvertIntoSubscribeResponseModel(subscriber));
+                return new ApiResponseModel(HttpStatusCode.OK, "Record Updated Successfully!!");
             }
-            catch(Exception)
+            catch (Exception)
             {
-                return NotFound();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get Columns List.
+        /// </summary>
+        [HttpGet]
+        [Route("GetColumnList")]
+        public async Task<ApiResponseModel> GetColumnsList()
+        {
+            try
+            {
+                var response = await _subscriberService.GetColumnList();
+                return new ApiResponseModel(HttpStatusCode.OK, response);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Create Subscription.
+        /// </summary>
+        [HttpPost]
+        [Route("CreateSubscription")]
+        public async Task<ApiResponseModel> CreateSubscription(CreateSubscriptionRequestModel requestModel)
+        {
+            try
+            {
+                return await _subscriberService.NewSubscription(ToSubscriptionRequestModel(requestModel));
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Update Subscription.
+        /// </summary>
+        [HttpPut]
+        [Route("UpdateSubscription")]
+        public async Task<ApiResponseModel> UpdateSubscription(CreateSubscriptionRequestModel requestModel)
+        {
+            try
+            {
+                await _subscriberService.UpdateSubscription(ToSubscriptionRequestModel(requestModel));
+                return new ApiResponseModel(HttpStatusCode.OK, "Record Updated Successfully!!");
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Renew Subscription.
+        /// </summary>
+        [HttpPut]
+        [Route("RenewSubscription")]
+        public async Task<ApiResponseModel> RenewSubscription(RenewSubscriptionRequestModel requestModel)
+        {
+            try
+            {
+                await _subscriberService.RenewSubscription(new RenewSubscriptionModel() { SubscriptionId = requestModel.SubscriptionId, IsActive = requestModel.IsActive });
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = "Record Updated Successfully!!" };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get Subscription.
+        /// </summary>
+        [HttpGet]
+        [Route("GetSubscription")]
+        public async Task<ApiResponseModel> GetSubscription(Guid SubscriberId)
+        {
+            try
+            {
+                List<SubscriptionModel> subscription = await _subscriberService.GetSubscriptions(SubscriberId);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = subscription };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get Subscription.
+        /// </summary>
+        [HttpGet]
+        [Route("GetServicesTracking")]
+        public async Task<ApiResponseModel> GetServicesTracking(Guid SubscriptionId)
+        {
+            try
+            {
+                TrackingDetailList list = await _subscriberService.GetServicesTracking(SubscriptionId);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = list };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Refresh Token.
+        /// </summary>
+        [HttpPut]
+        [Route("RefreshToken")]
+        public async Task<ApiResponseModel> RefreshToken(Guid SubscriptionId)
+        {
+            try
+            {
+                string token = await _subscriberService.RefreshToken(SubscriptionId);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = token };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get Subscriber Name.
+        /// </summary>
+        [HttpGet]
+        [Route("GetSubscriberName")]
+        public async Task<ApiResponseModel> GetSubscriberName(Guid SubscriberId)
+        {
+            try
+            {
+                string name = await _subscriberService.GetSubscriberName(SubscriberId);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = name };
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
@@ -73,14 +233,10 @@ namespace ValgenConfigurationApp.Controllers
             var subscriber = modelList.Select(s => new SubscriberResponseModel
             {
                 Id = s.Id,
-                UserName = s.UserName,
+                Name = s.Name,
                 Email = s.Email,
                 Phone = s.Phone,
-                SubscriberToken = s.SubscriberToken,
-                StartDate = s.StartDate,
-                EndDate = s.EndDate,
-                ConfigJSON = s.ConfigJSON,
-                IsActive = s.isActive
+
             }).ToList();
 
             return subscriber;
@@ -91,29 +247,40 @@ namespace ValgenConfigurationApp.Controllers
         {
             return new SubscriberRequestModel()
             {
-                UserName = model.SubscriberUserName,
-                Email = model.SubscriberEmail,
-                Phone = model.SubscriberPhone,
-                ConfigJSON = model.ConfigJSON,
-                StartDate = model.StartDate,
-                EndDate = model.EndDate,
-                isActive = model.isActive
+                Name = model.Name,
+                Email = model.Email,
+                Phone = model.Phone,
             };
         }
 
-        private SubscriberResponseModel ConvertIntoSubscribeResponseModel(SubscriberModel model)
+        private SubscriptionRequestModel ToSubscriptionRequestModel(CreateSubscriptionRequestModel model)
         {
-            return new SubscriberResponseModel()
+
+            SubscriptionRequestModel subscriptions = new SubscriptionRequestModel();
+            List<SubscriptionServiceModel> subs = new List<SubscriptionServiceModel>();
+            List<SubscriptionServicesMainModel> list = new List<SubscriptionServicesMainModel>();
+            foreach (var s in model.CreateSubscriptionServicesModel)
             {
-                Id = model.Id,
-                UserName = model.UserName,
-                Email = model.Email,
-                Phone = model.Phone,
-                SubscriberToken = model.SubscriberToken,
-                ConfigJSON = model.ConfigJSON,
+                SubscriptionServiceModel services = new SubscriptionServiceModel();
+                services.CompanyRecords = s.CompanyRecords;
+                services.LocationRecords = s.LocationRecords;
+                services.Columns = s.Columns;
+                subs.Add(services);
+                var convert = JsonConvert.SerializeObject(services);
+                list.Add(new SubscriptionServicesMainModel() { ServiceId = s.ServiceId, EndPointDesc = s.EndPointDesc, ConfigJson = convert });
+            }
+
+            return new SubscriptionRequestModel()
+            {
+                SubscriberId = model.SubscriberId,
+                SubscriptionId = model.SubscriptionId,
+                MaxRequests = model.MaxRequests,
+                TimeWindow = model.TimeWindow,
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
-                IsActive = model.isActive
+                IsActive = model.IsActive,
+                SubscriptionServiceModel = subs,
+                SubscriptionServicesMainModel = list
             };
         }
     }

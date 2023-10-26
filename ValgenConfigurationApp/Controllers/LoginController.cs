@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using ValgenConfigurationApp.Models;
 using ValgenConfigurationApp.Services;
 using ValgenConfigurationApp.Services.Models;
@@ -28,22 +29,22 @@ namespace ValgenConfigurationApp.Controllers
         /// <exception cref="Exception">throws when API failed</exception>
 
         [HttpPost]
-        public async Task<ActionResult<LoginResponseModel>> Login(LoginRequestModel loginRequest)
+        public async Task<ApiResponseModel> Login(LoginRequestModel loginRequest)
         {
             if (loginRequest == null || loginRequest.userName == null || loginRequest.userPassword == null)
             {
-                return BadRequest();
+                throw (new Exception("Invalid Request"));
             }
 
             try
             {
                 var loginData = await _userService.UserLogin(loginRequest.userName, loginRequest.userPassword);
                 LoginResponseModel loginResponse = ConvertIntoResponseModel(loginData);
-                return Ok(loginResponse);
+                return new ApiResponseModel { Status = HttpStatusCode.OK.ToString(), Result = loginResponse };
             }
             catch (Exception ex)
             {
-                return Unauthorized(ex.Message);
+                throw;
             }
         }
 
